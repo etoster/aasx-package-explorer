@@ -4,7 +4,6 @@ using NUnit.Framework;
 using Environment = System.Environment;
 using InvalidOperationException = System.InvalidOperationException;
 using Path = System.IO.Path;
-using Xml = System.Xml;
 
 namespace AdminShellNS.Tests
 {
@@ -121,29 +120,7 @@ namespace AdminShellNS.Tests
         [Test]
         public void TestLoadSaveXmlValidate()
         {
-            // Load the schema
-
-            var xmlSchemaSet = new Xml.Schema.XmlSchemaSet();
-            xmlSchemaSet.XmlResolver = new Xml.XmlUrlResolver();
-
-            string schemaPath = Path.Combine(
-                TestContext.CurrentContext.TestDirectory,
-                "Resources\\schemas\\xml\\AAS.xsd");
-
-            xmlSchemaSet.Add(null, schemaPath);
-
-            var schemaMessages = new List<string>();
-            xmlSchemaSet.ValidationEventHandler +=
-                (object sender, Xml.Schema.ValidationEventArgs e) => { schemaMessages.Add(e.Message); };
-            xmlSchemaSet.Compile();
-
-            if (schemaMessages.Count > 0)
-            {
-                var parts = new List<string> { $"Failed to compile the schema: {schemaPath}" };
-                parts.AddRange(schemaMessages);
-
-                throw new InvalidOperationException(string.Join(Environment.NewLine, parts));
-            }
+            var validator = AasSchemaValidation.NewXmlValidator();
 
             // Load-Save-Validate
 
@@ -159,35 +136,19 @@ namespace AdminShellNS.Tests
                     {
                         string name = Path.GetFileName(aasxPath);
                         string outPath = System.IO.Path.Combine(tmpDirPath, $"{name}.converted.xml");
-
                         package.SaveAs(outPath, writeFreshly: true);
 
-                        var settings = new Xml.XmlReaderSettings();
-                        settings.ValidationType = Xml.ValidationType.Schema;
-                        settings.Schemas = xmlSchemaSet;
-
-                        var messages = new List<string>();
-                        settings.ValidationEventHandler +=
-                            (object sender, Xml.Schema.ValidationEventArgs e) =>
-                            {
-                                messages.Add(e.Message);
-                            };
-
-                        using (var reader = Xml.XmlReader.Create(outPath, settings))
+                        using (var fileStream = System.IO.File.OpenRead(outPath))
                         {
-                            while (reader.Read())
-                            {
-                                // Invoke callbacks
-                            };
-
-                            if (messages.Count > 0)
+                            var records = new AasValidationRecordList();
+                            validator.Validate(records, fileStream);
+                            if (records.Count != 0)
                             {
                                 var parts = new List<string>
                                 {
                                     $"Failed to validate XML file exported from {aasxPath} to {outPath}:"
                                 };
-                                parts.AddRange(messages);
-
+                                parts.AddRange(records.Select((r) => r.Message));
                                 throw new AssertionException(string.Join(Environment.NewLine, parts));
                             }
                         }
