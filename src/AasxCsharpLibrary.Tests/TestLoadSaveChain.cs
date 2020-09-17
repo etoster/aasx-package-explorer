@@ -134,7 +134,14 @@ namespace AdminShellNS.Tests
                 {
                     using (var package = new AdminShellPackageEnv(aasxPath))
                     {
-                        // package loaded, do automatic check+fix
+                        /*
+                          TODO (mristin, 2020-09-17): Remove autofix once XSD and Aasx library in sync
+
+                          Package has been loaded, now we need to do an automatic check & fix.
+
+                          This is necessary as Aasx library is still not conform with the XSD AASX schema and breaks
+                          certain constraints (*e.g.*, the cardinality of langString = 1..*).
+                        */
                         var recs = package?.AasEnv?.ValidateAll();
                         if (recs != null)
                         {
