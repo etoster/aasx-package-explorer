@@ -134,6 +134,14 @@ namespace AdminShellNS.Tests
                 {
                     using (var package = new AdminShellPackageEnv(aasxPath))
                     {
+                        // package loaded, do automatic check+fix
+                        var recs = package?.AasEnv?.ValidateAll();
+                        if (recs != null)
+                        {
+                            package.AasEnv.AutoFix(recs);
+                        }
+
+                        // save as xml
                         string name = Path.GetFileName(aasxPath);
                         string outPath = System.IO.Path.Combine(tmpDirPath, $"{name}.converted.xml");
                         package.SaveAs(outPath, writeFreshly: true);
