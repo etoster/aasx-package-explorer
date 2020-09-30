@@ -1,0 +1,8 @@
+FROM mcr.microsoft.com/dotnet/core/sdk
+
+COPY src/ src/
+WORKDIR src/AasxPackageExplorer
+
+RUN dotnet restore
+
+RUN dotnet publish -c release -o /app --no-restore

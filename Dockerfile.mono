@@ -1,0 +1,34 @@
+FROM mono
+
+#COPY aasx-package-explorer.2020-09-16.alpha.zip .
+COPY src/ src/
+WORKDIR src/
+
+#RUN unzip aasx-package-explorer.2020-09-16.alpha.zip
+#WORKDIR AasxPackageExplorer/
+#RUN chmod +x ./'AasxPackageExplorer\AasxPackageExplorer.exe'
+#RUN ls -la 
+#RUN ./'AasxPackageExplorer\AasxPackageExplorer.exe' 
+
+
+#RUN pwsh ./InstallBuildDependencies.ps1
+RUN nuget update -self
+RUN nuget restore AasxPackageExplorer.sln -PackagesDirectory packages
+
+
+#RUN curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.0.3/powershell-7.0.3-linux-x64.tar.gz
+#RUN mkdir -p /opt/microsoft/powershell/7
+#RUN tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7
+#RUN chmod +x /opt/microsoft/powershell/7/pwsh
+#RUN ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
+
+#RUN ln -s /usr/bin/msbuild /usr/bin/MSBuild.exe
+#RUN MSBuild.exe 
+#RUN xbuild AasxPackageExplorer.sln
+#RUN pwsh ./BuildForRelease.ps1
+
+#RUN rm /usr/bin/msbuild
+#RUN ln -s /usr/lib/mono/msbuild/15.0/bin /usr/bin/msbuild
+#RUN chmod +x /usr/bin/msbuild
+RUN msbuild AasxPackageExplorer/AasxPackageExplorer.csproj
+#RUN msbuild AasxPackageExplorer.sln
